@@ -180,6 +180,11 @@
   .h-item .mid .top{font-size:13.5px; color:var(--paper); font-weight:600;}
   .h-item .mid .bot{font-size:11px; color:#9C8FC0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .h-item .amt{font-family:'Space Mono',monospace; font-weight:700; color:var(--gold); font-size:14.5px;}
+  .h-item .del{
+    color:#6d6390; font-size:16px; cursor:pointer; padding:4px 2px 4px 8px; flex-shrink:0;
+    transition:color .15s ease;
+  }
+  .h-item .del:active{color:var(--coral); transform:scale(0.9);}
 
   /* receipt overlay */
   .overlay{
@@ -272,7 +277,7 @@
   <div class="hdr">
     <div>
       <h1>Miller Tab<span>.</span></h1>
-      <div class="sub" id="dadLabel">sending to Dad ✓</div>
+      <div class="sub" id="dadLabel" onclick="openSettings()" style="cursor:pointer; text-decoration:underline dotted;">sending as Mom</div>
     </div>
     <div class="gear" onclick="openSettings()">⚙️</div>
   </div>
@@ -398,9 +403,28 @@
   const API_URL = 'https://miller-tab-api.derek-miller01.workers.dev';
   const BIG_AMOUNT_THRESHOLD = 100;
 
+  function loadSavedSettings(){
+    try{
+      const saved = JSON.parse(localStorage.getItem('millerTabSettings') || '{}');
+      return {
+        phone: saved.phone || '4192501246',
+        sender: saved.sender || 'Mom'
+      };
+    }catch(err){
+      return { phone: '4192501246', sender: 'Mom' };
+    }
+  }
+  function persistSettings(){
+    try{
+      localStorage.setItem('millerTabSettings', JSON.stringify({ phone: state.phone, sender: state.sender }));
+    }catch(err){ /* ignore in sandboxed/preview environments */ }
+  }
+
+  const saved = loadSavedSettings();
+
   let state = {
-    phone: '4192501246',
-    sender: 'Mom',
+    phone: saved.phone,
+    sender: saved.sender,
     activeCat: null,
     photoDataUrl: null,
     allExpenses: [],   // shared list, synced from the backend
@@ -540,10 +564,16 @@
   function saveSettings(){
     state.phone = $('phoneInput').value.trim();
     state.sender = $('senderSelect').value;
+    persistSettings();
     $('settingsModal').classList.remove('show');
-    $('dadLabel').textContent = state.phone ? 'sending to Dad ✓' : 'sending to Dad';
+    updateDadLabel();
+    renderBreakdown();
     showToast('Settings saved');
   }
+  function updateDadLabel(){
+    $('dadLabel').textContent = `sending as ${state.sender}${state.phone ? '' : ' · set Dad\'s number'}`;
+  }
+  updateDadLabel();
   $('settingsModal').addEventListener('click', e => { if(e.target.id==='settingsModal') $('settingsModal').classList.remove('show'); });
 
   let pendingExpense = null;
@@ -711,10 +741,28 @@
           <div class="bot">${h.note || t.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
         </div>
         <span class="amt">$${h.amt.toFixed(2)}</span>
+        <span class="del" onclick="deleteExpense('${h.id}')">✕</span>
       `;
       list.appendChild(el);
     });
   }
+  async function deleteExpense(id){
+    if(!confirm('Remove this from the tab? This deletes it for everyone.')) return;
+
+    // optimistic removal
+    state.allExpenses = state.allExpenses.filter(e => e.id !== id);
+    updateHistory();
+    updateTabTotal();
+    renderBreakdown();
+
+    try{
+      await fetch(`${API_URL}/expenses/${id}`, { method: 'DELETE' });
+      showToast('Removed');
+    }catch(err){
+      showToast('Removed locally — will sync when back online');
+    }
+  }
+
   function catLabel(id){
     const c = catInfo(id);
     return c ? c.name : 'Other';
