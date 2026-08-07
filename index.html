@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Miller Tab</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231F1533'/%3E%3Ctext x='50' y='66' font-size='52' text-anchor='middle' fill='%23FFC94A' font-family='Georgia'%3E%24%3C/text%3E%3C/svg%3E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1F1533">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1F1533;
+    --paper:#FBF3E3;
+    --paper-edge:#EFE3C9;
+    --night:#1F1533;
+    --night-2:#2B1E45;
+    --coral:#FF6B5B;
+    --mint:#3FBFAE;
+    --gold:#FFC94A;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 15% 0%, #3a2a5c 0%, transparent 55%),
+      radial-gradient(circle at 90% 10%, #26314f 0%, transparent 45%),
+      var(--night);
+    min-height:100vh;
+    font-family:'Inter',sans-serif;
+    color:var(--ink);
+    display:flex;
+    justify-content:center;
+    padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
+  }
+  .app{width:100%; max-width:440px; display:flex; flex-direction:column; gap:16px;}
+
+  /* header */
+  .hdr{display:flex; align-items:center; justify-content:space-between; padding:4px 4px 0;}
+  .hdr h1{
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:28px;
+    color:var(--paper); margin:0; letter-spacing:-0.5px;
+  }
+  .hdr h1 span{color:var(--gold);}
+  .hdr .sub{font-size:12.5px; color:#B8AED0; margin-top:2px; font-weight:500;}
+  .gear{
+    width:38px; height:38px; border-radius:50%; border:1px solid #4A3B6B;
+    background:#2B1E45; color:#B8AED0; font-size:17px; display:flex;
+    align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;
+  }
+  .gear:active{transform:scale(0.92);}
+
+  /* running tab strip */
+  .tabstrip{
+    background:var(--night-2); border:1px solid #3a2c5c; border-radius:16px;
+    padding:12px 16px; display:flex; align-items:center; justify-content:space-between;
+  }
+  .tabstrip .label{font-size:11.5px; text-transform:uppercase; letter-spacing:0.08em; color:#9C8FC0; font-weight:600;}
+  .tabstrip .amt{font-family:'Space Mono',monospace; font-size:22px; color:var(--gold); font-weight:700;}
+  .tabstrip .count{font-size:11.5px; color:#9C8FC0;}
+
+  /* main card */
+  .card{
+    background:var(--paper);
+    border-radius:22px;
+    padding:22px;
+    box-shadow:0 20px 40px -12px rgba(0,0,0,0.5);
+    position:relative;
+    overflow:hidden;
+  }
+  .card::before{
+    content:"";
+    position:absolute; top:0; left:0; right:0; height:6px;
+    background:repeating-linear-gradient(90deg, var(--night) 0 8px, transparent 8px 16px);
+    opacity:0.08;
+  }
+
+  .field-label{
+    font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:13px;
+    text-transform:uppercase; letter-spacing:0.06em; color:#8a7f5f; margin:0 0 10px;
+  }
+
+  /* category grid */
+  .cats{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:22px;}
+  .cat{
+    background:#fff; border:2px solid var(--paper-edge); border-radius:14px;
+    padding:12px 6px; display:flex; flex-direction:column; align-items:center; gap:6px;
+    cursor:pointer; transition:transform .12s ease, border-color .12s ease, background .12s ease;
+  }
+  .cat .emoji{font-size:26px;}
+  .cat .name{font-size:11.5px; font-weight:600; color:#6b6045;}
+  .cat.active{border-color:var(--coral); background:#FFF0EC; transform:translateY(-2px);}
+  .cat:active{transform:scale(0.95);}
+
+  /* amount */
+  .amount-wrap{
+    display:flex; align-items:baseline; justify-content:center; gap:4px;
+    background:#fff; border:2px solid var(--paper-edge); border-radius:16px;
+    padding:18px 10px; margin-bottom:20px;
+  }
+  .amount-wrap .sign{font-family:'Space Mono',monospace; font-size:30px; color:#c9bd97; font-weight:700;}
+  .amount-wrap input{
+    font-family:'Space Mono',monospace; font-size:44px; font-weight:700; color:var(--ink);
+    border:none; outline:none; background:transparent; width:100%; text-align:center;
+  }
+  .amount-wrap input::placeholder{color:#d8cea8;}
+
+  /* note */
+  .note-wrap{margin-bottom:18px;}
+  .note-wrap input{
+    width:100%; border:2px solid var(--paper-edge); border-radius:12px; padding:12px 14px;
+    font-family:'Inter',sans-serif; font-size:15px; background:#fff; outline:none; color:var(--ink);
+  }
+  .note-wrap input:focus{border-color:var(--mint);}
+
+  /* photo */
+  .photo-row{display:flex; gap:10px; margin-bottom:22px;}
+  .photo-btn{
+    flex:1; border:2px dashed var(--paper-edge); border-radius:14px; padding:14px;
+    display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer;
+    background:#fff; color:#8a7f5f; font-size:12.5px; font-weight:600;
+  }
+  .photo-btn .ic{font-size:20px;}
+  .photo-preview{
+    display:none; align-items:center; gap:10px; background:#fff; border:2px solid var(--paper-edge);
+    border-radius:14px; padding:10px; margin-bottom:22px;
+  }
+  .photo-preview img{width:52px; height:52px; object-fit:cover; border-radius:8px;}
+  .photo-preview .txt{font-size:12.5px; color:#6b6045; flex:1;}
+  .photo-preview .txt b{display:block; color:var(--ink); font-size:13px;}
+  .photo-preview .x{color:var(--coral); font-weight:700; cursor:pointer; padding:4px 8px;}
+  .scanning{font-size:12px; color:var(--mint); font-weight:600;}
+
+  /* submit */
+  .submit{
+    width:100%; border:none; border-radius:16px; padding:17px;
+    background:linear-gradient(135deg, var(--coral), #ff8a5b);
+    color:#fff; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:16.5px;
+    cursor:pointer; box-shadow:0 10px 24px -8px rgba(255,107,91,0.6);
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .submit:active{transform:scale(0.98);}
+  .submit:disabled{opacity:0.45; box-shadow:none;}
+
+  /* history */
+  .history{display:flex; flex-direction:column; gap:8px;}
+  .history .h-title{font-size:11.5px; text-transform:uppercase; letter-spacing:0.08em; color:#9C8FC0; font-weight:600; padding:0 4px;}
+  .h-item{
+    background:var(--night-2); border:1px solid #3a2c5c; border-radius:12px;
+    padding:11px 14px; display:flex; align-items:center; gap:10px;
+  }
+  .h-item .em{font-size:18px;}
+  .h-item .mid{flex:1; min-width:0;}
+  .h-item .mid .top{font-size:13.5px; color:var(--paper); font-weight:600;}
+  .h-item .mid .bot{font-size:11px; color:#9C8FC0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .h-item .amt{font-family:'Space Mono',monospace; font-weight:700; color:var(--gold); font-size:14.5px;}
+
+  /* receipt overlay */
+  .overlay{
+    position:fixed; inset:0; background:rgba(15,10,26,0.72); backdrop-filter:blur(4px);
+    display:none; align-items:center; justify-content:center; z-index:50; padding:20px;
+  }
+  .overlay.show{display:flex;}
+  .receipt{
+    background:var(--paper); width:100%; max-width:300px; border-radius:4px;
+    padding:22px 20px 26px; font-family:'Space Mono',monospace; color:var(--ink);
+    position:relative; transform:translateY(-40px); opacity:0;
+    animation:drop .55s cubic-bezier(.2,.9,.3,1.2) forwards;
+    box-shadow:0 30px 60px -10px rgba(0,0,0,0.5);
+  }
+  @keyframes drop{to{transform:translateY(0); opacity:1;}}
+  .receipt .zig{
+    position:absolute; left:0; right:0; bottom:-9px; height:18px;
+    background:
+      linear-gradient(135deg, var(--paper) 25%, transparent 25%) 0 0,
+      linear-gradient(225deg, var(--paper) 25%, transparent 25%) 0 0;
+    background-size:16px 18px;
+  }
+  .receipt h3{font-size:15px; text-align:center; letter-spacing:0.1em; margin:0 0 4px; text-transform:uppercase;}
+  .receipt .to{text-align:center; font-size:11px; color:#8a7f5f; margin-bottom:14px;}
+  .receipt hr{border:none; border-top:1px dashed #c9bd97; margin:12px 0;}
+  .receipt .row{display:flex; justify-content:space-between; font-size:13px; margin:5px 0;}
+  .receipt .row.big{font-size:19px; font-weight:700; margin-top:8px;}
+  .receipt .check{
+    width:50px; height:50px; border-radius:50%; background:var(--mint); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:26px; margin:14px auto 4px;
+    animation:pop .4s ease .5s both;
+  }
+  @keyframes pop{from{transform:scale(0);} to{transform:scale(1);}}
+  .receipt .status{text-align:center; font-size:11.5px; color:#8a7f5f; margin-top:2px;}
+  .ov-actions{display:flex; gap:10px; margin-top:16px; max-width:300px; width:100%;}
+  .ov-actions button{
+    flex:1; padding:12px; border-radius:12px; border:none; font-family:'Space Grotesk',sans-serif;
+    font-weight:700; font-size:14px; cursor:pointer;
+  }
+  .ov-actions .send{background:var(--mint); color:#fff;}
+  .ov-actions .close{background:#3a2c5c; color:var(--paper);}
+
+  /* settings modal */
+  .modal{
+    position:fixed; inset:0; background:rgba(15,10,26,0.72); backdrop-filter:blur(4px);
+    display:none; align-items:center; justify-content:center; z-index:60; padding:20px;
+  }
+  .modal.show{display:flex;}
+  .modal-card{background:var(--paper); border-radius:18px; padding:22px; width:100%; max-width:320px;}
+  .modal-card h3{font-family:'Space Grotesk',sans-serif; margin:0 0 14px; font-size:17px;}
+  .modal-card label{font-size:12px; font-weight:600; color:#8a7f5f; text-transform:uppercase; letter-spacing:0.05em;}
+  .modal-card input{
+    width:100%; border:2px solid var(--paper-edge); border-radius:10px; padding:11px 12px;
+    font-family:'Inter'; font-size:15px; margin:6px 0 16px; outline:none; background:#fff; color:var(--ink);
+  }
+  .modal-card select{
+    width:100%; border:2px solid var(--paper-edge); border-radius:10px; padding:11px 12px;
+    font-family:'Inter'; font-size:15px; margin:6px 0 16px; outline:none; background:#fff; color:var(--ink);
+  }
+  .modal-card .save{
+    width:100%; padding:13px; border-radius:12px; border:none; background:var(--coral);
+    color:#fff; font-family:'Space Grotesk'; font-weight:700; font-size:15px; cursor:pointer;
+  }
+  .modal-card .hint{font-size:11px; color:#a89b6f; margin-top:-8px; margin-bottom:14px; line-height:1.4;}
+
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--ink); color:var(--paper); padding:10px 18px; border-radius:10px; font-size:13px;
+    opacity:0; pointer-events:none; transition:all .25s ease; z-index:80; font-weight:500;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="hdr">
+    <div>
+      <h1>Miller Tab<span>.</span></h1>
+      <div class="sub" id="dadLabel">sending to Dad ✓</div>
+    </div>
+    <div class="gear" onclick="openSettings()">⚙️</div>
+  </div>
+
+  <div class="tabstrip">
+    <div>
+      <div class="label">Today's tab</div>
+      <div class="amt" id="tabTotal">$0.00</div>
+    </div>
+    <div class="count" id="tabCount">0 items sent</div>
+  </div>
+
+  <div class="card">
+    <div class="field-label">What's it for?</div>
+    <div class="cats" id="catGrid"></div>
+
+    <div class="field-label">How much?</div>
+    <div class="amount-wrap">
+      <span class="sign">$</span>
+      <input id="amount" type="text" inputmode="decimal" placeholder="0.00">
+    </div>
+
+    <div class="field-label">Quick note <span style="text-transform:none; color:#c9bd97;">(optional)</span></div>
+    <div class="note-wrap">
+      <input id="note" type="text" placeholder="e.g. Ari's cleats, groceries...">
+    </div>
+
+    <div class="field-label">Receipt photo <span style="text-transform:none; color:#c9bd97;">(optional)</span></div>
+    <div class="photo-row" id="photoRow">
+      <label class="photo-btn">
+        <span class="ic">📸</span> Snap it
+        <input type="file" accept="image/*" capture="environment" style="display:none" id="photoInput">
+      </label>
+    </div>
+    <div class="photo-preview" id="photoPreview">
+      <img id="photoImg">
+      <div class="txt"><b id="scanStatus">Scanning...</b><span id="scanDetail">Reading your receipt</span></div>
+      <div class="x" onclick="clearPhoto()">✕</div>
+    </div>
+
+    <button class="submit" id="submitBtn" onclick="submitExpense()">🚀 Send to Dad</button>
+  </div>
+
+  <div class="history" id="historyWrap" style="display:none;">
+    <div class="h-title">Sent today</div>
+    <div id="historyList"></div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div style="display:flex; flex-direction:column; align-items:center;">
+    <div class="receipt" id="receiptCard">
+      <h3 id="rCat">🍔 Food</h3>
+      <div class="to" id="rTo">for Dad</div>
+      <hr>
+      <div class="row"><span id="rNoteLabel">Note</span><span id="rNoteVal">—</span></div>
+      <div class="row"><span>Time</span><span id="rTime">—</span></div>
+      <hr>
+      <div class="row big"><span>TOTAL</span><span id="rAmt">$0.00</span></div>
+      <div class="check">✓</div>
+      <div class="status">Receipt ready</div>
+      <div class="zig"></div>
+    </div>
+    <div class="ov-actions">
+      <button class="close" onclick="closeOverlay()">Cancel</button>
+      <button class="send" onclick="doSend()">💬 Text it</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="settingsModal">
+  <div class="modal-card">
+    <h3>Settings</h3>
+    <label>Dad's phone number</label>
+    <input id="phoneInput" type="tel" placeholder="e.g. 4195551234">
+    <div class="hint">Used to open a pre-filled text message. Nothing is sent automatically — you always confirm on the Messages screen.</div>
+    <label>Your name</label>
+    <select id="senderSelect">
+      <option value="Mom">Mom</option>
+      <option value="Addi">Addi</option>
+      <option value="Asch">Asch</option>
+      <option value="Ari">Ari</option>
+    </select>
+    <button class="save" onclick="saveSettings()">Save</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
+<script>
+  const CATS = [
+    {id:'food', emoji:'🍔', name:'Food'},
+    {id:'shop', emoji:'🛍️', name:'Shopping'},
+    {id:'gas', emoji:'⛽', name:'Gas'},
+    {id:'fun', emoji:'🎉', name:'Fun'},
+    {id:'school', emoji:'📚', name:'School'},
+    {id:'other', emoji:'✨', name:'Other'},
+  ];
+
+  let state = {
+    phone: '4192501246',
+    sender: 'Mom',
+    activeCat: null,
+    photoDataUrl: null,
+    history: [],
+  };
+
+  const $ = id => document.getElementById(id);
+
+  function renderCats(){
+    const grid = $('catGrid');
+    grid.innerHTML = '';
+    CATS.forEach(c => {
+      const el = document.createElement('div');
+      el.className = 'cat' + (state.activeCat === c.id ? ' active' : '');
+      el.innerHTML = `<span class="emoji">${c.emoji}</span><span class="name">${c.name}</span>`;
+      el.onclick = () => { state.activeCat = c.id; renderCats(); };
+      grid.appendChild(el);
+    });
+  }
+  renderCats();
+
+  function catInfo(id){ return CATS.find(c => c.id === id); }
+
+  $('photoInput') && document.querySelector('.photo-btn input').addEventListener('change', handlePhoto);
+
+  function handlePhoto(e){
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = async function(evt){
+      state.photoDataUrl = evt.target.result;
+      $('photoImg').src = state.photoDataUrl;
+      $('photoPreview').style.display = 'flex';
+      $('photoRow').style.display = 'none';
+      $('scanStatus').textContent = 'Scanning...';
+      $('scanDetail').textContent = 'Reading your receipt';
+      try{
+        const result = await Tesseract.recognize(state.photoDataUrl, 'eng');
+        const text = result.data.text;
+        const match = text.match(/\$?\s?(\d{1,4}\.\d{2})/g);
+
+        // Guess merchant: first line with real letters, skipping short/junk lines
+        const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+        let merchant = null;
+        for(const line of lines.slice(0, 6)){
+          const letters = line.replace(/[^a-zA-Z]/g, '');
+          if(letters.length >= 3 && letters.length / line.length > 0.5){
+            merchant = line
+              .replace(/[^a-zA-Z0-9&' .-]/g, '')
+              .trim()
+              .slice(0, 40);
+            if(merchant.length >= 3) break;
+            merchant = null;
+          }
+        }
+        if(merchant && !$('note').value.trim()){
+          $('note').value = merchant;
+        }
+
+        let foundAmt = false;
+        if(match && match.length){
+          const nums = match.map(m => parseFloat(m.replace('$','').trim())).filter(n => !isNaN(n));
+          const guess = Math.max(...nums);
+          $('amount').value = guess.toFixed(2);
+          foundAmt = true;
+        }
+
+        if(foundAmt && merchant){
+          $('scanStatus').textContent = `Found $${$('amount').value}`;
+          $('scanDetail').textContent = `${merchant} — double-check below`;
+        } else if(foundAmt){
+          $('scanStatus').textContent = `Found $${$('amount').value}`;
+          $('scanDetail').textContent = 'Double-check it below';
+        } else if(merchant){
+          $('scanStatus').textContent = `Found ${merchant}`;
+          $('scanDetail').textContent = 'Couldn\'t find the total — type it in';
+        } else {
+          $('scanStatus').textContent = 'Couldn\'t read it';
+          $('scanDetail').textContent = 'No worries — just type the amount';
+        }
+      }catch(err){
+        $('scanStatus').textContent = 'Scan failed';
+        $('scanDetail').textContent = 'Just type the amount below';
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearPhoto(){
+    state.photoDataUrl = null;
+    $('photoPreview').style.display = 'none';
+    $('photoRow').style.display = 'flex';
+    document.querySelector('.photo-btn input').value = '';
+  }
+
+  function showToast(msg){
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  function openSettings(){
+    $('phoneInput').value = state.phone;
+    $('senderSelect').value = state.sender;
+    $('settingsModal').classList.add('show');
+  }
+  function saveSettings(){
+    state.phone = $('phoneInput').value.trim();
+    state.sender = $('senderSelect').value;
+    $('settingsModal').classList.remove('show');
+    $('dadLabel').textContent = state.phone ? 'sending to Dad ✓' : 'sending to Dad';
+    showToast('Settings saved');
+  }
+  $('settingsModal').addEventListener('click', e => { if(e.target.id==='settingsModal') $('settingsModal').classList.remove('show'); });
+
+  let pendingExpense = null;
+
+  function submitExpense(){
+    const amtRaw = $('amount').value.trim();
+    const amt = parseFloat(amtRaw);
+    if(!state.activeCat){ showToast('Pick a category first'); return; }
+    if(!amtRaw || isNaN(amt) || amt <= 0){ showToast('Enter an amount'); return; }
+
+    const cat = catInfo(state.activeCat);
+    const note = $('note').value.trim();
+    const time = new Date();
+
+    pendingExpense = {
+      cat, amt, note, time,
+      photo: state.photoDataUrl
+    };
+
+    $('rCat').textContent = `${cat.emoji} ${cat.name}`;
+    $('rTo').textContent = `from ${state.sender}`;
+    $('rNoteLabel').textContent = note ? 'Note' : 'Note';
+    $('rNoteVal').textContent = note || '—';
+    $('rTime').textContent = time.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    $('rAmt').textContent = '$' + amt.toFixed(2);
+
+    $('overlay').classList.add('show');
+  }
+
+  function closeOverlay(){
+    $('overlay').classList.remove('show');
+    pendingExpense = null;
+  }
+
+  function doSend(){
+    if(!pendingExpense) return;
+    const {cat, amt, note, time} = pendingExpense;
+
+    let body = `💸 ${state.sender} here — heads up, $${amt.toFixed(2)} for ${cat.name.toLowerCase()}`;
+    if(note) body += ` (${note})`;
+    body += ` is hitting the account.`;
+
+    const smsBody = encodeURIComponent(body);
+    const smsUrl = state.phone
+      ? `sms:${state.phone}${/iPhone|iPad|iPod/.test(navigator.userAgent) ? '&' : '?'}body=${smsBody}`
+      : `sms:${/iPhone|iPad|iPod/.test(navigator.userAgent) ? '&' : '?'}body=${smsBody}`;
+
+    window.location.href = smsUrl;
+
+    state.history.unshift({cat, amt, note, time});
+    updateHistory();
+    updateTabTotal();
+
+    closeOverlay();
+    $('amount').value = '';
+    $('note').value = '';
+    state.activeCat = null;
+    renderCats();
+    clearPhoto();
+    showToast('Opening Messages...');
+  }
+
+  function updateTabTotal(){
+    const total = state.history.reduce((s,h) => s + h.amt, 0);
+    $('tabTotal').textContent = '$' + total.toFixed(2);
+    $('tabCount').textContent = `${state.history.length} item${state.history.length===1?'':'s'} sent`;
+  }
+
+  function updateHistory(){
+    const wrap = $('historyWrap');
+    const list = $('historyList');
+    if(state.history.length === 0){ wrap.style.display='none'; return; }
+    wrap.style.display = 'flex';
+    list.innerHTML = '';
+    state.history.forEach(h => {
+      const el = document.createElement('div');
+      el.className = 'h-item';
+      el.innerHTML = `
+        <span class="em">${h.cat.emoji}</span>
+        <div class="mid">
+          <div class="top">${h.cat.name}</div>
+          <div class="bot">${h.note || h.time.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+        </div>
+        <span class="amt">$${h.amt.toFixed(2)}</span>
+      `;
+      list.appendChild(el);
+    });
+  }
+</script>
+</body>
+</html>
