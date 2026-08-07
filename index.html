@@ -353,7 +353,7 @@
     </div>
     <div class="ov-actions">
       <button class="close" onclick="closeOverlay()">Cancel</button>
-      <button class="send" onclick="doSend()">💬 Text it</button>
+      <button class="send" onclick="doSend()">✅ Send it</button>
     </div>
   </div>
 </div>
@@ -361,9 +361,7 @@
 <div class="modal" id="settingsModal">
   <div class="modal-card">
     <h3>Settings</h3>
-    <label>Dad's phone number</label>
-    <input id="phoneInput" type="tel" placeholder="e.g. 4195551234">
-    <div class="hint">Used to open a pre-filled text message. Nothing is sent automatically — you always confirm on the Messages screen.</div>
+    <div class="hint">Dad gets notified automatically the moment you send — no texting needed.</div>
     <label>Your name</label>
     <select id="senderSelect">
       <option value="Mom">Mom</option>
@@ -557,12 +555,10 @@
   }
 
   function openSettings(){
-    $('phoneInput').value = state.phone;
     $('senderSelect').value = state.sender;
     $('settingsModal').classList.add('show');
   }
   function saveSettings(){
-    state.phone = $('phoneInput').value.trim();
     state.sender = $('senderSelect').value;
     persistSettings();
     $('settingsModal').classList.remove('show');
@@ -571,7 +567,7 @@
     showToast('Settings saved');
   }
   function updateDadLabel(){
-    $('dadLabel').textContent = `sending as ${state.sender}${state.phone ? '' : ' · set Dad\'s number'}`;
+    $('dadLabel').textContent = `sending as ${state.sender}`;
   }
   updateDadLabel();
   $('settingsModal').addEventListener('click', e => { if(e.target.id==='settingsModal') $('settingsModal').classList.remove('show'); });
@@ -626,18 +622,8 @@
     if(!pendingExpense) return;
     const {cat, amt, note, time} = pendingExpense;
 
-    let body = `💸 ${state.sender} here — heads up, $${amt.toFixed(2)} for ${cat.name.toLowerCase()}`;
-    if(note) body += ` (${note})`;
-    body += ` is hitting the account.`;
-
-    const smsBody = encodeURIComponent(body);
-    const smsUrl = state.phone
-      ? `sms:${state.phone}${/iPhone|iPad|iPod/.test(navigator.userAgent) ? '&' : '?'}body=${smsBody}`
-      : `sms:${/iPhone|iPad|iPod/.test(navigator.userAgent) ? '&' : '?'}body=${smsBody}`;
-
-    window.location.href = smsUrl;
-
-    // save to the shared backend so every phone sees it
+    // save to the shared backend so every phone sees it — this also
+    // triggers a push notification to Dad, no texting needed
     try{
       const res = await fetch(`${API_URL}/expenses`, {
         method: 'POST',
@@ -667,7 +653,7 @@
     state.activeCat = null;
     renderCats();
     clearPhoto();
-    showToast('Opening Messages...');
+    showToast('Sent to Dad ✓');
   }
 
   function setView(mode){
