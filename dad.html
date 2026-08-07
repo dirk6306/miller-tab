@@ -3,25 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>Miller Tab — Dad</title>
+<title>Miller Tab — Parents</title>
 <link rel="manifest" href="dad-manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#1F1533">
+<meta name="theme-color" content="#161311">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#1F1533; --paper:#FBF3E3; --paper-edge:#EFE3C9;
-    --night:#1F1533; --night-2:#2B1E45; --coral:#FF6B5B; --mint:#3FBFAE; --gold:#FFC94A;
+    --ink:#241C14; --paper:#FFF8F0; --paper-edge:#EFE0CB;
+    --night:#161311; --night-2:#231F1C; --coral:#FF6A00; --mint:#E8934D; --gold:#F2B84B;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;}
   body{
     background:
-      radial-gradient(circle at 15% 0%, #3a2a5c 0%, transparent 55%),
-      radial-gradient(circle at 90% 10%, #26314f 0%, transparent 45%),
+      radial-gradient(circle at 15% 0%, #2b2118 0%, transparent 55%),
+      radial-gradient(circle at 90% 10%, #1f1a15 0%, transparent 45%),
       var(--night);
     min-height:100vh; font-family:'Inter',sans-serif; color:var(--ink);
     display:flex; justify-content:center;
@@ -68,6 +68,20 @@
   .breakdown .empty{font-size:12px; color:#6d6390; font-style:italic;}
 
   .filters{display:flex; gap:8px; flex-wrap:wrap;}
+
+  .log-toggle-btn{
+    width:100%; background:var(--night-2); border:1px dashed #4a3f36; color:var(--gold);
+    border-radius:14px; padding:13px; font-family:'Space Grotesk',sans-serif; font-weight:700;
+    font-size:14px; cursor:pointer;
+  }
+  .log-toggle-btn:active{transform:scale(0.98);}
+
+  .log-parent-row{display:flex; gap:8px; margin-bottom:4px;}
+  .log-parent-btn{
+    flex:1; background:#fff; border:2px solid var(--paper-edge); border-radius:12px; padding:9px;
+    font-weight:700; font-size:13.5px; color:#6b6045; cursor:pointer; text-align:center;
+  }
+  .log-parent-btn.active{border-color:var(--coral); background:#FFF0E5; color:var(--coral);}
 
   /* quick log card */
   .log-card{
@@ -159,7 +173,7 @@
   <div class="hdr">
     <div>
       <h1>Miller Tab<span>.</span></h1>
-      <div class="sub">Dad view — everything the family's sent</div>
+      <div class="sub">Parents view — everything the family's sent</div>
     </div>
     <div class="bell" id="bellBtn" onclick="toggleNotifications()">🔔</div>
   </div>
@@ -180,16 +194,6 @@
     <div class="breakdown" id="breakdown"></div>
   </div>
 
-  <div class="log-card">
-    <div class="log-title">Log your own expense</div>
-    <div class="log-cats" id="logCats"></div>
-    <div class="log-row">
-      <input class="amt-field" id="logAmt" type="text" inputmode="decimal" placeholder="$0.00">
-      <input class="note-field" id="logNote" type="text" placeholder="Note (optional)">
-    </div>
-    <button class="log-btn" onclick="logExpense()">Log it</button>
-  </div>
-
   <div class="filters">
     <div class="filter-group" id="timeFilters">
       <button class="active" onclick="setTimeFilter('today')">Today</button>
@@ -199,6 +203,19 @@
   </div>
   <div class="filters">
     <div class="filter-group" id="personFilters"></div>
+  </div>
+
+  <button class="log-toggle-btn" id="logToggleBtn" onclick="toggleLogCard()">+ Log an expense</button>
+
+  <div class="log-card" id="logCard" style="display:none;">
+    <div class="log-title">Log an expense</div>
+    <div class="log-parent-row" id="logParentRow"></div>
+    <div class="log-cats" id="logCats"></div>
+    <div class="log-row">
+      <input class="amt-field" id="logAmt" type="text" inputmode="decimal" placeholder="$0.00">
+      <input class="note-field" id="logNote" type="text" placeholder="Note (optional)">
+    </div>
+    <button class="log-btn" onclick="logExpense()">Log it</button>
   </div>
 
   <div class="list" id="list"></div>
@@ -216,6 +233,9 @@
       <option value="gas">⛽ Gas</option>
       <option value="fun">🎉 Fun</option>
       <option value="school">📚 School</option>
+      <option value="sports">⚽ Sports</option>
+      <option value="clothes">👕 Clothes</option>
+      <option value="health">🩺 Health</option>
       <option value="other">✨ Other</option>
     </select>
     <label>Amount</label>
@@ -254,6 +274,9 @@
     {id:'gas', emoji:'⛽', name:'Gas'},
     {id:'fun', emoji:'🎉', name:'Fun'},
     {id:'school', emoji:'📚', name:'School'},
+    {id:'sports', emoji:'⚽', name:'Sports'},
+    {id:'clothes', emoji:'👕', name:'Clothes'},
+    {id:'health', emoji:'🩺', name:'Health'},
     {id:'other', emoji:'✨', name:'Other'},
   ];
   function catLabel(id){ const c = CATS.find(c => c.id === id); return c ? c.name : 'Other'; }
@@ -367,6 +390,26 @@
   const KNOWN_SENDERS = ['Dad', 'Mom', 'Addi', 'Asch', 'Ari'];
   let editingId = null;
   let logCatId = null;
+  let logParent = 'Dad';
+
+  function toggleLogCard(){
+    const card = $('logCard');
+    const isOpen = card.style.display !== 'none';
+    card.style.display = isOpen ? 'none' : 'flex';
+    $('logToggleBtn').textContent = isOpen ? '+ Log an expense' : '– Hide';
+  }
+
+  function renderLogParentRow(){
+    const wrap = $('logParentRow');
+    wrap.innerHTML = ['Dad', 'Mom'].map(p =>
+      `<div class="log-parent-btn ${logParent===p?'active':''}" onclick="selectLogParent('${p}')">${p}</div>`
+    ).join('');
+  }
+  function selectLogParent(p){
+    logParent = p;
+    renderLogParentRow();
+  }
+  renderLogParentRow();
 
   function renderLogCats(){
     const wrap = $('logCats');
@@ -392,14 +435,14 @@
       const res = await fetch(`${API_URL}/expenses`, {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ cat: cat.id, catEmoji: cat.emoji, amt, note, sender: 'Dad' })
+        body: JSON.stringify({ cat: cat.id, catEmoji: cat.emoji, amt, note, sender: logParent })
       });
       const saved = await res.json();
       state.all.unshift(saved);
     }catch(err){
       state.all.unshift({
         id: 'local-' + Date.now(), cat: cat.id, catEmoji: cat.emoji,
-        amt, note, sender: 'Dad', time: new Date().toISOString()
+        amt, note, sender: logParent, time: new Date().toISOString()
       });
     }
 
@@ -430,7 +473,7 @@
     editingId = null;
   }
 
-  const CAT_EMOJI = {food:'🍔', shop:'🛍️', gas:'⛽', fun:'🎉', school:'📚', other:'✨'};
+  const CAT_EMOJI = {food:'🍔', shop:'🛍️', gas:'⛽', fun:'🎉', school:'📚', sports:'⚽', clothes:'👕', health:'🩺', other:'✨'};
 
   async function saveEdit(){
     if(!editingId) return;

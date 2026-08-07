@@ -1,10 +1,10 @@
 {
-  "name": "Miller Tab — Dad",
+  "name": "Miller Tab — Parents",
   "short_name": "Miller Tab",
   "display": "standalone",
   "start_url": "./dad.html",
-  "background_color": "#1F1533",
-  "theme_color": "#1F1533",
+  "background_color": "#161311",
+  "theme_color": "#161311",
   "icons": [
     {
       "src": "icon-192.png",

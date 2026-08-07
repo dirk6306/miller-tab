@@ -7,26 +7,26 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0a0a0a">
+<meta name="theme-color" content="#161311">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#1F1533;
-    --paper:#FBF3E3;
-    --paper-edge:#EFE3C9;
-    --night:#1F1533;
-    --night-2:#2B1E45;
-    --coral:#FF6B5B;
-    --mint:#3FBFAE;
-    --gold:#FFC94A;
+    --ink:#241C14;
+    --paper:#FFF8F0;
+    --paper-edge:#EFE0CB;
+    --night:#161311;
+    --night-2:#231F1C;
+    --coral:#FF6A00;
+    --mint:#E8934D;
+    --gold:#F2B84B;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;}
   body{
     background:
-      radial-gradient(circle at 15% 0%, #3a2a5c 0%, transparent 55%),
-      radial-gradient(circle at 90% 10%, #26314f 0%, transparent 45%),
+      radial-gradient(circle at 15% 0%, #2b2118 0%, transparent 55%),
+      radial-gradient(circle at 90% 10%, #1f1a15 0%, transparent 45%),
       var(--night);
     min-height:100vh;
     font-family:'Inter',sans-serif;
@@ -196,7 +196,7 @@
     background:var(--paper); width:100%; max-width:300px; border-radius:4px;
     padding:22px 20px 26px; font-family:'Space Mono',monospace; color:var(--ink);
     position:relative; transform:translateY(-40px); opacity:0;
-    animation:drop .55s cubic-bezier(.2,.9,.3,1.2) forwards;
+    animation:drop .22s ease-out forwards;
     box-shadow:0 30px 60px -10px rgba(0,0,0,0.5);
   }
   @keyframes drop{to{transform:translateY(0); opacity:1;}}
@@ -215,7 +215,7 @@
   .receipt .check{
     width:50px; height:50px; border-radius:50%; background:var(--mint); color:#fff;
     display:flex; align-items:center; justify-content:center; font-size:26px; margin:14px auto 4px;
-    animation:pop .4s ease .5s both;
+    animation:pop .25s ease .1s both;
   }
   @keyframes pop{from{transform:scale(0);} to{transform:scale(1);}}
   .receipt .status{text-align:center; font-size:11.5px; color:#8a7f5f; margin-top:2px;}
@@ -395,6 +395,9 @@
     {id:'gas', emoji:'⛽', name:'Gas'},
     {id:'fun', emoji:'🎉', name:'Fun'},
     {id:'school', emoji:'📚', name:'School'},
+    {id:'sports', emoji:'⚽', name:'Sports'},
+    {id:'clothes', emoji:'👕', name:'Clothes'},
+    {id:'health', emoji:'🩺', name:'Health'},
     {id:'other', emoji:'✨', name:'Other'},
   ];
 
