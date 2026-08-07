@@ -68,6 +68,30 @@
   .breakdown .empty{font-size:12px; color:#6d6390; font-style:italic;}
 
   .filters{display:flex; gap:8px; flex-wrap:wrap;}
+
+  /* quick log card */
+  .log-card{
+    background:var(--paper); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:10px;
+  }
+  .log-card .log-title{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14.5px; color:var(--ink);}
+  .log-cats{display:flex; gap:7px; flex-wrap:wrap;}
+  .log-cat{
+    background:#fff; border:2px solid var(--paper-edge); border-radius:12px; padding:8px 10px;
+    display:flex; align-items:center; gap:5px; cursor:pointer; font-size:12.5px; font-weight:600; color:#6b6045;
+  }
+  .log-cat.active{border-color:var(--coral); background:#FFF0EC;}
+  .log-row{display:flex; gap:8px;}
+  .log-row input{
+    border:2px solid var(--paper-edge); border-radius:10px; padding:10px 12px;
+    font-family:'Inter'; font-size:14px; outline:none; background:#fff; color:var(--ink);
+  }
+  .log-row .amt-field{width:110px; font-family:'Space Mono',monospace; font-weight:700;}
+  .log-row .note-field{flex:1;}
+  .log-btn{
+    background:var(--coral); color:#fff; border:none; border-radius:12px; padding:12px;
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14.5px; cursor:pointer;
+  }
+  .log-btn:active{transform:scale(0.98);}
   .filter-group{display:flex; background:var(--night-2); border-radius:12px; padding:3px; gap:2px; flex:1;}
   .filter-group button{
     flex:1; border:none; background:transparent; color:#9C8FC0; font-size:12px; font-weight:600;
@@ -154,6 +178,16 @@
       <div class="count" id="summaryCount">0 items</div>
     </div>
     <div class="breakdown" id="breakdown"></div>
+  </div>
+
+  <div class="log-card">
+    <div class="log-title">Log your own expense</div>
+    <div class="log-cats" id="logCats"></div>
+    <div class="log-row">
+      <input class="amt-field" id="logAmt" type="text" inputmode="decimal" placeholder="$0.00">
+      <input class="note-field" id="logNote" type="text" placeholder="Note (optional)">
+    </div>
+    <button class="log-btn" onclick="logExpense()">Log it</button>
   </div>
 
   <div class="filters">
@@ -319,8 +353,53 @@
     });
   }
 
-  const KNOWN_SENDERS = ['Mom', 'Addi', 'Asch', 'Ari'];
+  const KNOWN_SENDERS = ['Dad', 'Mom', 'Addi', 'Asch', 'Ari'];
   let editingId = null;
+  let logCatId = null;
+
+  function renderLogCats(){
+    const wrap = $('logCats');
+    wrap.innerHTML = CATS.map(c =>
+      `<div class="log-cat ${logCatId===c.id?'active':''}" onclick="selectLogCat('${c.id}')">${c.emoji} ${c.name}</div>`
+    ).join('');
+  }
+  function selectLogCat(id){
+    logCatId = id;
+    renderLogCats();
+  }
+  renderLogCats();
+
+  async function logExpense(){
+    const amt = parseFloat($('logAmt').value);
+    if(!logCatId){ showToast('Pick a category first'); return; }
+    if(isNaN(amt) || amt <= 0){ showToast('Enter an amount'); return; }
+
+    const cat = CATS.find(c => c.id === logCatId);
+    const note = $('logNote').value.trim();
+
+    try{
+      const res = await fetch(`${API_URL}/expenses`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ cat: cat.id, catEmoji: cat.emoji, amt, note, sender: 'Dad' })
+      });
+      const saved = await res.json();
+      state.all.unshift(saved);
+    }catch(err){
+      state.all.unshift({
+        id: 'local-' + Date.now(), cat: cat.id, catEmoji: cat.emoji,
+        amt, note, sender: 'Dad', time: new Date().toISOString()
+      });
+    }
+
+    $('logAmt').value = '';
+    $('logNote').value = '';
+    logCatId = null;
+    renderLogCats();
+    renderPersonFilters();
+    renderAll();
+    showToast('Logged');
+  }
 
   function openEdit(id){
     const e = state.all.find(x => x.id === id);
