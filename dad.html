@@ -240,6 +240,8 @@
   OneSignalDeferred.push(async function(OneSignal) {
     await OneSignal.init({
       appId: "7e61faad-afa5-4526-92ad-d68c8fbdd47c",
+      serviceWorkerPath: "OneSignalSDKWorker.js",
+      serviceWorkerParam: { scope: "/miller-tab/" },
     });
     window.OneSignal = OneSignal;
     updateBellState();
