@@ -185,6 +185,19 @@
     transition:color .15s ease;
   }
   .h-item .del:active{color:var(--coral); transform:scale(0.9);}
+  .h-item .edit{
+    color:#6d6390; font-size:15px; cursor:pointer; padding:4px 2px; flex-shrink:0;
+    transition:color .15s ease;
+  }
+  .h-item .edit:active{color:var(--gold); transform:scale(0.9);}
+
+  .editing-banner{
+    background:var(--gold); color:var(--ink); border-radius:12px; padding:10px 14px;
+    display:none; align-items:center; justify-content:space-between; font-size:13px; font-weight:700;
+    margin-bottom:14px;
+  }
+  .editing-banner.show{display:flex;}
+  .editing-banner .cancel-edit{font-weight:600; text-decoration:underline; cursor:pointer;}
 
   /* receipt overlay */
   .overlay{
@@ -291,6 +304,11 @@
       <div class="count" id="tabCount">0 items sent</div>
     </div>
     <div class="breakdown" id="breakdown"></div>
+  </div>
+
+  <div class="editing-banner" id="editingBanner">
+    <span>✏️ Fixing your last send</span>
+    <span class="cancel-edit" onclick="cancelRecentEdit()">Cancel</span>
   </div>
 
   <div class="card">
@@ -578,6 +596,11 @@
   let pendingExpense = null;
 
   function submitExpense(){
+    if(recentEditId){
+      saveRecentEdit();
+      return;
+    }
+
     const amtRaw = $('amount').value.trim();
     const amt = parseFloat(amtRaw);
     if(!state.activeCat){ showToast('Pick a category first'); return; }
@@ -719,8 +742,10 @@
     if(items.length === 0){ wrap.style.display='flex'; list.innerHTML = `<div style="text-align:center; padding:16px; color:#6d6390; font-size:13px;">Nothing sent ${state.viewMode === 'today' ? 'today' : 'this week'} yet</div>`; return; }
     wrap.style.display = 'flex';
     list.innerHTML = '';
+    const EDIT_WINDOW_MS = 2 * 60 * 1000;
     items.forEach(h => {
       const t = new Date(h.time);
+      const canEdit = (Date.now() - t.getTime()) < EDIT_WINDOW_MS;
       const el = document.createElement('div');
       el.className = 'h-item';
       el.innerHTML = `
@@ -730,10 +755,73 @@
           <div class="bot">${h.note || t.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
         </div>
         <span class="amt">$${h.amt.toFixed(2)}</span>
+        ${canEdit ? `<span class="edit" onclick="startRecentEdit('${h.id}')">✏️</span>` : ''}
         <span class="del" onclick="deleteExpense('${h.id}')">✕</span>
       `;
       list.appendChild(el);
     });
+  }
+
+  // re-render periodically so the edit icon disappears once the window passes
+  setInterval(updateHistory, 20000);
+
+  let recentEditId = null;
+
+  function startRecentEdit(id){
+    const item = state.allExpenses.find(e => e.id === id);
+    if(!item) return;
+    recentEditId = id;
+
+    state.activeCat = item.cat;
+    renderCats();
+    $('amount').value = item.amt.toFixed(2);
+    $('note').value = item.note || '';
+
+    $('editingBanner').classList.add('show');
+    $('submitBtn').textContent = '✏️ Update';
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }
+
+  function cancelRecentEdit(){
+    recentEditId = null;
+    $('editingBanner').classList.remove('show');
+    $('submitBtn').textContent = '🚀 Send to Dad';
+    $('amount').value = '';
+    $('note').value = '';
+    state.activeCat = null;
+    renderCats();
+  }
+
+  async function saveRecentEdit(){
+    const amtRaw = $('amount').value.trim();
+    const amt = parseFloat(amtRaw);
+    if(!state.activeCat){ showToast('Pick a category first'); return; }
+    if(!amtRaw || isNaN(amt) || amt <= 0){ showToast('Enter an amount'); return; }
+
+    const cat = catInfo(state.activeCat);
+    const note = $('note').value.trim();
+    const id = recentEditId;
+
+    const idx = state.allExpenses.findIndex(e => e.id === id);
+    if(idx > -1){
+      state.allExpenses[idx] = { ...state.allExpenses[idx], cat: cat.id, catEmoji: cat.emoji, amt, note };
+    }
+
+    try{
+      await fetch(`${API_URL}/expenses/${id}`, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ cat: cat.id, catEmoji: cat.emoji, amt, note })
+      });
+      showToast('Updated ✓');
+    }catch(err){
+      showToast('Updated locally — will sync when back online');
+    }
+
+    updateHistory();
+    updateTabTotal();
+    renderBreakdown();
+    cancelRecentEdit();
   }
   async function deleteExpense(id){
     if(!confirm('Remove this from the tab? This deletes it for everyone.')) return;

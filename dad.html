@@ -76,6 +76,13 @@
   }
   .log-toggle-btn:active{transform:scale(0.98);}
 
+  .export-btn{
+    width:100%; background:transparent; border:2px solid var(--coral); color:var(--coral);
+    border-radius:14px; padding:12px; font-family:'Space Grotesk',sans-serif; font-weight:700;
+    font-size:13.5px; cursor:pointer;
+  }
+  .export-btn:active{transform:scale(0.98); background:rgba(255,106,0,0.1);}
+
   .log-parent-row{display:flex; gap:8px; margin-bottom:4px;}
   .log-parent-btn{
     flex:1; background:#fff; border:2px solid var(--paper-edge); border-radius:12px; padding:9px;
@@ -204,6 +211,11 @@
   <div class="filters">
     <div class="filter-group" id="personFilters"></div>
   </div>
+  <div class="filters">
+    <div class="filter-group" id="catFilters"></div>
+  </div>
+
+  <button class="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
 
   <button class="log-toggle-btn" id="logToggleBtn" onclick="toggleLogCard()">+ Log an expense</button>
 
@@ -287,6 +299,7 @@
     all: [],
     timeFilter: 'today', // today | week | all
     personFilter: 'all',
+    catFilter: 'all',
   };
 
   function isToday(iso){
@@ -305,7 +318,8 @@
         : state.timeFilter === 'today' ? isToday(e.time)
         : isThisWeek(e.time);
       const personOk = state.personFilter === 'all' ? true : e.sender === state.personFilter;
-      return timeOk && personOk;
+      const catOk = state.catFilter === 'all' ? true : e.cat === state.catFilter;
+      return timeOk && personOk && catOk;
     });
   }
 
@@ -317,7 +331,9 @@
       showToast('Could not load — check your connection');
     }
     renderPersonFilters();
+    renderCatFilters();
     renderAll();
+    updateBadge();
   }
 
   function renderPersonFilters(){
@@ -327,6 +343,17 @@
     wrap.innerHTML = buttons.map(p =>
       `<button class="${state.personFilter===p?'active':''}" onclick="setPersonFilter('${p}')">${p==='all'?'Everyone':p}</button>`
     ).join('');
+  }
+
+  function renderCatFilters(){
+    const catsUsed = Array.from(new Set(state.all.map(e => e.cat)));
+    const wrap = $('catFilters');
+    const buttons = ['all', ...catsUsed];
+    wrap.innerHTML = buttons.map(c => {
+      const info = CATS.find(x => x.id === c);
+      const label = c === 'all' ? 'All categories' : (info ? `${info.emoji} ${info.name}` : c);
+      return `<button class="${state.catFilter===c?'active':''}" onclick="setCatFilter('${c}')">${label}</button>`;
+    }).join('');
   }
 
   function setTimeFilter(f){
@@ -339,6 +366,12 @@
   function setPersonFilter(p){
     state.personFilter = p;
     renderPersonFilters();
+    renderCatFilters();
+    renderAll();
+  }
+  function setCatFilter(c){
+    state.catFilter = c;
+    renderCatFilters();
     renderAll();
   }
 
@@ -451,6 +484,7 @@
     logCatId = null;
     renderLogCats();
     renderPersonFilters();
+    renderCatFilters();
     renderAll();
     showToast('Logged');
   }
@@ -492,6 +526,7 @@
     const idx = state.all.findIndex(e => e.id === editingId);
     if(idx > -1) state.all[idx] = { ...state.all[idx], ...updates };
     renderPersonFilters();
+    renderCatFilters();
     renderAll();
     closeEdit();
 
@@ -518,6 +553,7 @@
     if(!confirm('Remove this expense? This deletes it for everyone.')) return;
     state.all = state.all.filter(e => e.id !== id);
     renderPersonFilters();
+    renderCatFilters();
     renderAll();
     try{
       await fetch(`${API_URL}/expenses/${id}`, { method: 'DELETE' });
@@ -533,6 +569,61 @@
     t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 2200);
   }
+
+  function exportCSV(){
+    const items = filtered();
+    if(items.length === 0){ showToast('Nothing to export in this view'); return; }
+
+    const rows = [['Date', 'Time', 'Sender', 'Category', 'Amount', 'Note']];
+    items.forEach(e => {
+      const t = new Date(e.time);
+      rows.push([
+        t.toLocaleDateString(),
+        t.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+        e.sender,
+        catLabel(e.cat),
+        e.amt.toFixed(2),
+        (e.note || '').replace(/"/g, '""')
+      ]);
+    });
+
+    const csv = rows.map(r => r.map(cell => `"${cell}"`).join(',')).join('\n');
+    const blob = new Blob([csv], {type: 'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const stamp = new Date().toISOString().slice(0,10);
+    a.href = url;
+    a.download = `miller-tab-${state.timeFilter}-${stamp}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('CSV downloaded');
+  }
+
+  // --- Home screen icon badge (unread count since last visit) ---
+  function updateBadge(){
+    if(!('setAppBadge' in navigator)) return;
+    try{
+      const lastSeen = localStorage.getItem('millerTabLastSeen');
+      const lastSeenTime = lastSeen ? new Date(lastSeen) : new Date(0);
+      const unread = state.all.filter(e => new Date(e.time) > lastSeenTime).length;
+
+      if(unread > 0){
+        navigator.setAppBadge(unread).catch(()=>{});
+      } else {
+        navigator.clearAppBadge().catch(()=>{});
+      }
+    }catch(err){ /* badge API not available */ }
+  }
+  function markAllSeen(){
+    try{
+      localStorage.setItem('millerTabLastSeen', new Date().toISOString());
+      if('clearAppBadge' in navigator) navigator.clearAppBadge().catch(()=>{});
+    }catch(err){}
+  }
+  // mark everything seen once they've actually looked at the list for a moment
+  setTimeout(markAllSeen, 3000);
 
   function updateBellState(){
     if(!window.OneSignal) return;
