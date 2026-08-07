@@ -234,6 +234,17 @@
 
 <!-- OneSignal SDK will be added here once notifications are set up -->
 
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "7e61faad-afa5-4526-92ad-d68c8fbdd47c",
+    });
+    window.OneSignal = OneSignal;
+    updateBellState();
+  });
+</script>
 <script>
   const API_URL = 'https://miller-tab-api.derek-miller01.workers.dev';
 
@@ -480,9 +491,33 @@
     setTimeout(() => t.classList.remove('show'), 2200);
   }
 
-  // Placeholder — wired up once OneSignal is connected
-  function toggleNotifications(){
-    showToast('Notifications aren\'t set up yet');
+  function updateBellState(){
+    if(!window.OneSignal) return;
+    try{
+      const optedIn = OneSignal.User.PushSubscription.optedIn;
+      $('bellBtn').classList.toggle('on', !!optedIn);
+      $('notifBanner').style.display = optedIn ? 'none' : 'flex';
+    }catch(err){
+      console.log('OneSignal not ready yet', err);
+    }
+  }
+
+  async function toggleNotifications(){
+    if(!window.OneSignal){ showToast('Still loading — try again in a sec'); return; }
+    try{
+      const optedIn = OneSignal.User.PushSubscription.optedIn;
+      if(optedIn){
+        await OneSignal.User.PushSubscription.optOut();
+        showToast('Notifications turned off');
+      } else {
+        await OneSignal.Notifications.requestPermission();
+        await OneSignal.User.PushSubscription.optIn();
+        showToast('Notifications turned on 🔔');
+      }
+      updateBellState();
+    }catch(err){
+      showToast('Could not update notifications');
+    }
   }
 
   loadExpenses();
