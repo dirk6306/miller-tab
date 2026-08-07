@@ -3,8 +3,8 @@
   "short_name": "Miller Tab",
   "display": "standalone",
   "start_url": "./dad.html",
-  "background_color": "#161311",
-  "theme_color": "#161311",
+  "background_color": "#FAF8F5",
+  "theme_color": "#FAF8F5",
   "icons": [
     {
       "src": "icon-192.png",
