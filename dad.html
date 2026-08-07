@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Miller Tab — Dad</title>
+<link rel="manifest" href="dad-manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1F1533">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1F1533; --paper:#FBF3E3; --paper-edge:#EFE3C9;
+    --night:#1F1533; --night-2:#2B1E45; --coral:#FF6B5B; --mint:#3FBFAE; --gold:#FFC94A;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 15% 0%, #3a2a5c 0%, transparent 55%),
+      radial-gradient(circle at 90% 10%, #26314f 0%, transparent 45%),
+      var(--night);
+    min-height:100vh; font-family:'Inter',sans-serif; color:var(--ink);
+    display:flex; justify-content:center;
+    padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
+  }
+  .app{width:100%; max-width:460px; display:flex; flex-direction:column; gap:16px;}
+
+  .hdr{display:flex; align-items:center; justify-content:space-between; padding:4px 4px 0;}
+  .hdr h1{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:26px; color:var(--paper); margin:0; letter-spacing:-0.5px;}
+  .hdr h1 span{color:var(--gold);}
+  .hdr .sub{font-size:12.5px; color:#B8AED0; margin-top:2px; font-weight:500;}
+
+  .bell{
+    width:38px; height:38px; border-radius:50%; border:1px solid #4A3B6B;
+    background:#2B1E45; color:#B8AED0; font-size:16px; display:flex;
+    align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; position:relative;
+  }
+  .bell.on{background:var(--mint); color:#fff; border-color:var(--mint);}
+  .bell:active{transform:scale(0.92);}
+
+  .notif-banner{
+    background:var(--night-2); border:1px solid #3a2c5c; border-radius:14px; padding:13px 16px;
+    display:flex; align-items:center; gap:12px; font-size:13px; color:#B8AED0;
+  }
+  .notif-banner button{
+    background:var(--gold); color:var(--ink); border:none; border-radius:10px; padding:8px 13px;
+    font-weight:700; font-size:12.5px; cursor:pointer; flex-shrink:0; font-family:'Space Grotesk',sans-serif;
+  }
+
+  .summary{
+    background:var(--night-2); border:1px solid #3a2c5c; border-radius:16px; padding:16px;
+    display:flex; flex-direction:column; gap:12px;
+  }
+  .summary .toprow{display:flex; align-items:center; justify-content:space-between;}
+  .summary .label{font-size:11.5px; text-transform:uppercase; letter-spacing:0.08em; color:#9C8FC0; font-weight:600;}
+  .summary .amt{font-family:'Space Mono',monospace; font-size:30px; color:var(--gold); font-weight:700;}
+  .summary .count{font-size:11.5px; color:#9C8FC0;}
+  .breakdown{display:flex; flex-wrap:wrap; gap:6px; border-top:1px solid #3a2c5c; padding-top:12px;}
+  .breakdown .chip{
+    font-size:12px; font-weight:600; color:#B8AED0; background:#1F1533;
+    border-radius:8px; padding:6px 10px; display:flex; gap:6px; align-items:center;
+  }
+  .breakdown .chip b{color:var(--gold); font-family:'Space Mono',monospace;}
+  .breakdown .empty{font-size:12px; color:#6d6390; font-style:italic;}
+
+  .filters{display:flex; gap:8px; flex-wrap:wrap;}
+  .filter-group{display:flex; background:var(--night-2); border-radius:12px; padding:3px; gap:2px; flex:1;}
+  .filter-group button{
+    flex:1; border:none; background:transparent; color:#9C8FC0; font-size:12px; font-weight:600;
+    padding:8px 6px; border-radius:9px; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .filter-group button.active{background:var(--gold); color:var(--ink);}
+
+  .list{display:flex; flex-direction:column; gap:8px;}
+  .item{
+    background:var(--paper); border-radius:14px; padding:13px 14px; display:flex; align-items:center; gap:11px;
+    cursor:pointer;
+  }
+  .item:active{transform:scale(0.99);}
+  .item .em{font-size:20px;}
+  .item .mid{flex:1; min-width:0;}
+  .item .top{font-size:13.5px; color:var(--ink); font-weight:700;}
+  .item .bot{font-size:11.5px; color:#8a7f5f; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .item .amt{font-family:'Space Mono',monospace; font-weight:700; color:var(--coral); font-size:15.5px;}
+  .item .del{color:#c9bd97; font-size:17px; cursor:pointer; padding:4px 2px 4px 8px; flex-shrink:0;}
+  .item .del:active{color:var(--coral); transform:scale(0.9);}
+
+  .empty-state{
+    text-align:center; padding:40px 20px; color:#9C8FC0; font-size:13.5px;
+    background:var(--night-2); border-radius:16px; border:1px dashed #3a2c5c;
+  }
+
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--paper); color:var(--ink); padding:10px 18px; border-radius:10px; font-size:13px;
+    opacity:0; pointer-events:none; transition:all .25s ease; z-index:80; font-weight:600;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  /* edit modal */
+  .modal{
+    position:fixed; inset:0; background:rgba(15,10,26,0.72); backdrop-filter:blur(4px);
+    display:none; align-items:center; justify-content:center; z-index:60; padding:20px;
+  }
+  .modal.show{display:flex;}
+  .modal-card{background:var(--paper); border-radius:18px; padding:22px; width:100%; max-width:340px;}
+  .modal-card h3{font-family:'Space Grotesk',sans-serif; margin:0 0 16px; font-size:17px; color:var(--ink);}
+  .modal-card label{font-size:11.5px; font-weight:700; color:#8a7f5f; text-transform:uppercase; letter-spacing:0.05em;}
+  .modal-card input, .modal-card select{
+    width:100%; border:2px solid var(--paper-edge); border-radius:10px; padding:11px 12px;
+    font-family:'Inter'; font-size:15px; margin:6px 0 14px; outline:none; background:#fff; color:var(--ink);
+  }
+  .modal-card .amt-input{font-family:'Space Mono',monospace; font-weight:700; font-size:18px;}
+  .modal-actions{display:flex; gap:10px; margin-top:6px;}
+  .modal-actions button{
+    flex:1; padding:13px; border-radius:12px; border:none; font-family:'Space Grotesk',sans-serif;
+    font-weight:700; font-size:14.5px; cursor:pointer;
+  }
+  .modal-actions .save-btn{background:var(--mint); color:#fff;}
+  .modal-actions .cancel-btn{background:#EFE3C9; color:#6b6045;}
+  .modal-delete{
+    width:100%; margin-top:10px; padding:11px; border-radius:12px; border:none;
+    background:transparent; color:var(--coral); font-weight:700; font-size:13px; cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="hdr">
+    <div>
+      <h1>Miller Tab<span>.</span></h1>
+      <div class="sub">Dad view — everything the family's sent</div>
+    </div>
+    <div class="bell" id="bellBtn" onclick="toggleNotifications()">🔔</div>
+  </div>
+
+  <div class="notif-banner" id="notifBanner" style="display:none;">
+    <span>Turn on alerts to get pinged the moment someone sends an expense.</span>
+    <button onclick="toggleNotifications()">Enable</button>
+  </div>
+
+  <div class="summary">
+    <div class="toprow">
+      <div>
+        <div class="label" id="summaryLabel">Today's total</div>
+        <div class="amt" id="summaryTotal">$0.00</div>
+      </div>
+      <div class="count" id="summaryCount">0 items</div>
+    </div>
+    <div class="breakdown" id="breakdown"></div>
+  </div>
+
+  <div class="filters">
+    <div class="filter-group" id="timeFilters">
+      <button class="active" onclick="setTimeFilter('today')">Today</button>
+      <button onclick="setTimeFilter('week')">Week</button>
+      <button onclick="setTimeFilter('all')">All</button>
+    </div>
+  </div>
+  <div class="filters">
+    <div class="filter-group" id="personFilters"></div>
+  </div>
+
+  <div class="list" id="list"></div>
+</div>
+
+<div class="modal" id="editModal">
+  <div class="modal-card">
+    <h3>Edit expense</h3>
+    <label>Sent by</label>
+    <select id="editSender"></select>
+    <label>Category</label>
+    <select id="editCat">
+      <option value="food">🍔 Food</option>
+      <option value="shop">🛍️ Shopping</option>
+      <option value="gas">⛽ Gas</option>
+      <option value="fun">🎉 Fun</option>
+      <option value="school">📚 School</option>
+      <option value="other">✨ Other</option>
+    </select>
+    <label>Amount</label>
+    <input id="editAmt" class="amt-input" type="text" inputmode="decimal">
+    <label>Note</label>
+    <input id="editNote" type="text" placeholder="Optional">
+    <div class="modal-actions">
+      <button class="cancel-btn" onclick="closeEdit()">Cancel</button>
+      <button class="save-btn" onclick="saveEdit()">Save changes</button>
+    </div>
+    <button class="modal-delete" onclick="deleteFromEdit()">Delete this expense</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- OneSignal SDK will be added here once notifications are set up -->
+
+<script>
+  const API_URL = 'https://miller-tab-api.derek-miller01.workers.dev';
+
+  const CATS = [
+    {id:'food', emoji:'🍔', name:'Food'},
+    {id:'shop', emoji:'🛍️', name:'Shopping'},
+    {id:'gas', emoji:'⛽', name:'Gas'},
+    {id:'fun', emoji:'🎉', name:'Fun'},
+    {id:'school', emoji:'📚', name:'School'},
+    {id:'other', emoji:'✨', name:'Other'},
+  ];
+  function catLabel(id){ const c = CATS.find(c => c.id === id); return c ? c.name : 'Other'; }
+
+  const $ = id => document.getElementById(id);
+
+  let state = {
+    all: [],
+    timeFilter: 'today', // today | week | all
+    personFilter: 'all',
+  };
+
+  function isToday(iso){
+    const d = new Date(iso), n = new Date();
+    return d.toDateString() === n.toDateString();
+  }
+  function isThisWeek(iso){
+    const d = new Date(iso), n = new Date();
+    const weekAgo = new Date(n.getTime() - 7*24*60*60*1000);
+    return d >= weekAgo && d <= n;
+  }
+
+  function filtered(){
+    return state.all.filter(e => {
+      const timeOk = state.timeFilter === 'all' ? true
+        : state.timeFilter === 'today' ? isToday(e.time)
+        : isThisWeek(e.time);
+      const personOk = state.personFilter === 'all' ? true : e.sender === state.personFilter;
+      return timeOk && personOk;
+    });
+  }
+
+  async function loadExpenses(){
+    try{
+      const res = await fetch(`${API_URL}/expenses`);
+      state.all = await res.json();
+    }catch(err){
+      showToast('Could not load — check your connection');
+    }
+    renderPersonFilters();
+    renderAll();
+  }
+
+  function renderPersonFilters(){
+    const people = Array.from(new Set(state.all.map(e => e.sender))).sort();
+    const wrap = $('personFilters');
+    const buttons = ['all', ...people];
+    wrap.innerHTML = buttons.map(p =>
+      `<button class="${state.personFilter===p?'active':''}" onclick="setPersonFilter('${p}')">${p==='all'?'Everyone':p}</button>`
+    ).join('');
+  }
+
+  function setTimeFilter(f){
+    state.timeFilter = f;
+    document.querySelectorAll('#timeFilters button').forEach((b,i) => {
+      b.classList.toggle('active', ['today','week','all'][i] === f);
+    });
+    renderAll();
+  }
+  function setPersonFilter(p){
+    state.personFilter = p;
+    renderPersonFilters();
+    renderAll();
+  }
+
+  function renderAll(){
+    const items = filtered();
+    const total = items.reduce((s,e) => s + e.amt, 0);
+    $('summaryTotal').textContent = '$' + total.toFixed(2);
+    $('summaryCount').textContent = `${items.length} item${items.length===1?'':'s'}`;
+    $('summaryLabel').textContent =
+      state.timeFilter === 'today' ? "Today's total" :
+      state.timeFilter === 'week' ? "This week's total" : "All-time total";
+
+    const bySender = {};
+    items.forEach(e => { bySender[e.sender] = (bySender[e.sender]||0) + e.amt; });
+    const bd = $('breakdown');
+    if(items.length === 0){
+      bd.innerHTML = `<div class="empty">Nothing here yet</div>`;
+    } else {
+      bd.innerHTML = Object.entries(bySender)
+        .sort((a,b) => b[1]-a[1])
+        .map(([name,t]) => `<div class="chip">${name} <b>$${t.toFixed(2)}</b></div>`)
+        .join('');
+    }
+
+    const list = $('list');
+    if(items.length === 0){
+      list.innerHTML = `<div class="empty-state">No expenses match this view</div>`;
+      return;
+    }
+    list.innerHTML = '';
+    items.forEach(e => {
+      const t = new Date(e.time);
+      const el = document.createElement('div');
+      el.className = 'item';
+      el.innerHTML = `
+        <span class="em">${e.catEmoji || '💸'}</span>
+        <div class="mid">
+          <div class="top">${e.sender} · ${catLabel(e.cat)}</div>
+          <div class="bot">${e.note || ''}${e.note ? ' · ' : ''}${t.toLocaleDateString([], {month:'short', day:'numeric'})}, ${t.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+        </div>
+        <span class="amt">$${e.amt.toFixed(2)}</span>
+        <span class="del" onclick="event.stopPropagation(); deleteExpense('${e.id}')">✕</span>
+      `;
+      el.onclick = () => openEdit(e.id);
+      list.appendChild(el);
+    });
+  }
+
+  const KNOWN_SENDERS = ['Mom', 'Addi', 'Asch', 'Ari'];
+  let editingId = null;
+
+  function openEdit(id){
+    const e = state.all.find(x => x.id === id);
+    if(!e) return;
+    editingId = id;
+
+    const senders = Array.from(new Set([...KNOWN_SENDERS, e.sender]));
+    $('editSender').innerHTML = senders.map(s => `<option value="${s}" ${s===e.sender?'selected':''}>${s}</option>`).join('');
+    $('editCat').value = e.cat;
+    $('editAmt').value = e.amt.toFixed(2);
+    $('editNote').value = e.note || '';
+
+    $('editModal').classList.add('show');
+  }
+  function closeEdit(){
+    $('editModal').classList.remove('show');
+    editingId = null;
+  }
+
+  const CAT_EMOJI = {food:'🍔', shop:'🛍️', gas:'⛽', fun:'🎉', school:'📚', other:'✨'};
+
+  async function saveEdit(){
+    if(!editingId) return;
+    const amt = parseFloat($('editAmt').value);
+    if(isNaN(amt) || amt <= 0){ showToast('Enter a valid amount'); return; }
+
+    const updates = {
+      sender: $('editSender').value,
+      cat: $('editCat').value,
+      catEmoji: CAT_EMOJI[$('editCat').value],
+      amt: amt,
+      note: $('editNote').value.trim()
+    };
+
+    // optimistic update
+    const idx = state.all.findIndex(e => e.id === editingId);
+    if(idx > -1) state.all[idx] = { ...state.all[idx], ...updates };
+    renderPersonFilters();
+    renderAll();
+    closeEdit();
+
+    try{
+      await fetch(`${API_URL}/expenses/${editingId}`, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(updates)
+      });
+      showToast('Saved');
+    }catch(err){
+      showToast('Saved locally — will sync when back online');
+    }
+  }
+
+  function deleteFromEdit(){
+    if(!editingId) return;
+    const id = editingId;
+    closeEdit();
+    deleteExpense(id);
+  }
+
+  async function deleteExpense(id){
+    if(!confirm('Remove this expense? This deletes it for everyone.')) return;
+    state.all = state.all.filter(e => e.id !== id);
+    renderPersonFilters();
+    renderAll();
+    try{
+      await fetch(`${API_URL}/expenses/${id}`, { method: 'DELETE' });
+      showToast('Removed');
+    }catch(err){
+      showToast('Removed locally — will sync when back online');
+    }
+  }
+
+  function showToast(msg){
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  // Placeholder — wired up once OneSignal is connected
+  function toggleNotifications(){
+    showToast('Notifications aren\'t set up yet');
+  }
+
+  loadExpenses();
+  setInterval(loadExpenses, 30000); // quietly refresh every 30s
+</script>
+</body>
+</html>
