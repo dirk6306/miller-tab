@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Miller Tab</title>
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231F1533'/%3E%3Ctext x='50' y='66' font-size='52' text-anchor='middle' fill='%23FFC94A' font-family='Georgia'%3E%24%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%232B1E45'/%3E%3Cstop offset='1' stop-color='%231F1533'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='url(%23g)'/%3E%3Ctext x='50' y='45' font-size='30' text-anchor='middle' fill='%23FFC94A' font-family='Georgia' font-weight='bold'%3EM%3C/text%3E%3Ctext x='50' y='82' font-size='42' text-anchor='middle' fill='%23FFC94A' font-family='Georgia' font-weight='bold'%3E%24%3C/text%3E%3C/svg%3E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1F1533">
@@ -57,9 +57,18 @@
     background:var(--night-2); border:1px solid #3a2c5c; border-radius:16px;
     padding:12px 16px; display:flex; align-items:center; justify-content:space-between;
   }
+  .tabstrip{flex-direction:column; align-items:stretch; gap:10px;}
+  .tabstrip .toprow{display:flex; align-items:center; justify-content:space-between;}
   .tabstrip .label{font-size:11.5px; text-transform:uppercase; letter-spacing:0.08em; color:#9C8FC0; font-weight:600;}
   .tabstrip .amt{font-family:'Space Mono',monospace; font-size:22px; color:var(--gold); font-weight:700;}
   .tabstrip .count{font-size:11.5px; color:#9C8FC0;}
+  .breakdown{display:flex; flex-wrap:wrap; gap:6px; border-top:1px solid #3a2c5c; padding-top:10px;}
+  .breakdown .chip{
+    font-size:11px; font-weight:600; color:#B8AED0; background:#1F1533;
+    border-radius:8px; padding:5px 9px; display:flex; gap:5px; align-items:center;
+  }
+  .breakdown .chip b{color:var(--gold); font-family:'Space Mono',monospace;}
+  .breakdown .empty{font-size:11.5px; color:#6d6390; font-style:italic;}
 
   /* main card */
   .card{
@@ -107,6 +116,14 @@
   }
   .amount-wrap input::placeholder{color:#d8cea8;}
 
+  /* merchant chips */
+  .chips-row{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;}
+  .chip-btn{
+    background:#fff; border:2px solid var(--paper-edge); border-radius:20px;
+    padding:7px 13px; font-size:12.5px; font-weight:600; color:#6b6045; cursor:pointer;
+  }
+  .chip-btn:active{transform:scale(0.95); background:#FFF0EC; border-color:var(--coral);}
+
   /* note */
   .note-wrap{margin-bottom:18px;}
   .note-wrap input{
@@ -146,7 +163,14 @@
 
   /* history */
   .history{display:flex; flex-direction:column; gap:8px;}
-  .history .h-title{font-size:11.5px; text-transform:uppercase; letter-spacing:0.08em; color:#9C8FC0; font-weight:600; padding:0 4px;}
+  .history .h-head{display:flex; align-items:center; justify-content:space-between; padding:0 4px;}
+  .history .h-title{font-size:11.5px; text-transform:uppercase; letter-spacing:0.08em; color:#9C8FC0; font-weight:600;}
+  .view-toggle{display:flex; background:var(--night-2); border-radius:10px; padding:3px; gap:2px;}
+  .view-toggle button{
+    border:none; background:transparent; color:#9C8FC0; font-size:11.5px; font-weight:600;
+    padding:5px 11px; border-radius:8px; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .view-toggle button.active{background:var(--gold); color:var(--ink);}
   .h-item{
     background:var(--night-2); border:1px solid #3a2c5c; border-radius:12px;
     padding:11px 14px; display:flex; align-items:center; gap:10px;
@@ -221,6 +245,19 @@
   }
   .modal-card .hint{font-size:11px; color:#a89b6f; margin-top:-8px; margin-bottom:14px; line-height:1.4;}
 
+  .confirm-card{background:var(--paper); border-radius:18px; padding:24px; width:100%; max-width:300px; text-align:center;}
+  .confirm-card .icon{font-size:38px; margin-bottom:8px;}
+  .confirm-card h3{font-family:'Space Grotesk',sans-serif; margin:0 0 6px; font-size:17px;}
+  .confirm-card p{font-size:13.5px; color:#6b6045; margin:0 0 18px; line-height:1.5;}
+  .confirm-card .big-amt{font-family:'Space Mono',monospace; font-weight:700; color:var(--coral);}
+  .confirm-actions{display:flex; gap:10px;}
+  .confirm-actions button{
+    flex:1; padding:12px; border-radius:12px; border:none; font-family:'Space Grotesk',sans-serif;
+    font-weight:700; font-size:14px; cursor:pointer;
+  }
+  .confirm-actions .yes{background:var(--coral); color:#fff;}
+  .confirm-actions .no{background:#EFE3C9; color:#6b6045;}
+
   .toast{
     position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
     background:var(--ink); color:var(--paper); padding:10px 18px; border-radius:10px; font-size:13px;
@@ -241,11 +278,14 @@
   </div>
 
   <div class="tabstrip">
-    <div>
-      <div class="label">Today's tab</div>
-      <div class="amt" id="tabTotal">$0.00</div>
+    <div class="toprow">
+      <div>
+        <div class="label">Today's tab</div>
+        <div class="amt" id="tabTotal">$0.00</div>
+      </div>
+      <div class="count" id="tabCount">0 items sent</div>
     </div>
-    <div class="count" id="tabCount">0 items sent</div>
+    <div class="breakdown" id="breakdown"></div>
   </div>
 
   <div class="card">
@@ -259,6 +299,7 @@
     </div>
 
     <div class="field-label">Quick note <span style="text-transform:none; color:#c9bd97;">(optional)</span></div>
+    <div class="chips-row" id="chipsRow"></div>
     <div class="note-wrap">
       <input id="note" type="text" placeholder="e.g. Ari's cleats, groceries...">
     </div>
@@ -280,7 +321,13 @@
   </div>
 
   <div class="history" id="historyWrap" style="display:none;">
-    <div class="h-title">Sent today</div>
+    <div class="h-head">
+      <div class="h-title" id="historyTitle">Sent today</div>
+      <div class="view-toggle">
+        <button id="btnToday" class="active" onclick="setView('today')">Today</button>
+        <button id="btnWeek" onclick="setView('week')">Week</button>
+      </div>
+    </div>
     <div id="historyList"></div>
   </div>
 </div>
@@ -323,6 +370,18 @@
   </div>
 </div>
 
+<div class="modal" id="confirmModal">
+  <div class="confirm-card">
+    <div class="icon">👀</div>
+    <h3>That's a big one</h3>
+    <p>You're about to send <span class="big-amt" id="confirmAmt">$0.00</span> to Dad. Sure that's right?</p>
+    <div class="confirm-actions">
+      <button class="no" onclick="cancelBigConfirm()">Let me fix it</button>
+      <button class="yes" onclick="proceedAfterBigConfirm()">Yep, send it</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
@@ -336,15 +395,48 @@
     {id:'other', emoji:'✨', name:'Other'},
   ];
 
+  const API_URL = 'https://miller-tab-api.derek-miller01.workers.dev';
+  const BIG_AMOUNT_THRESHOLD = 100;
+
   let state = {
     phone: '4192501246',
     sender: 'Mom',
     activeCat: null,
     photoDataUrl: null,
-    history: [],
+    allExpenses: [],   // shared list, synced from the backend
+    viewMode: 'today', // 'today' | 'week'
   };
 
   const $ = id => document.getElementById(id);
+
+  function isToday(iso){
+    const d = new Date(iso);
+    const n = new Date();
+    return d.toDateString() === n.toDateString();
+  }
+  function isThisWeek(iso){
+    const d = new Date(iso);
+    const n = new Date();
+    const weekAgo = new Date(n.getTime() - 7*24*60*60*1000);
+    return d >= weekAgo && d <= n;
+  }
+  function filteredExpenses(){
+    return state.allExpenses.filter(e => state.viewMode === 'today' ? isToday(e.time) : isThisWeek(e.time));
+  }
+
+  async function loadExpenses(){
+    try{
+      const res = await fetch(`${API_URL}/expenses`);
+      const data = await res.json();
+      state.allExpenses = data;
+    }catch(err){
+      console.log('Could not load shared expenses', err);
+    }
+    updateTabTotal();
+    updateHistory();
+    renderBreakdown();
+    renderMerchantChips();
+  }
 
   function renderCats(){
     const grid = $('catGrid');
@@ -466,18 +558,32 @@
     const note = $('note').value.trim();
     const time = new Date();
 
-    pendingExpense = {
-      cat, amt, note, time,
-      photo: state.photoDataUrl
-    };
+    pendingExpense = { cat, amt, note, time };
 
+    if(amt >= BIG_AMOUNT_THRESHOLD){
+      $('confirmAmt').textContent = '$' + amt.toFixed(2);
+      $('confirmModal').classList.add('show');
+      return;
+    }
+    showReceipt();
+  }
+
+  function cancelBigConfirm(){
+    $('confirmModal').classList.remove('show');
+    pendingExpense = null;
+  }
+  function proceedAfterBigConfirm(){
+    $('confirmModal').classList.remove('show');
+    showReceipt();
+  }
+
+  function showReceipt(){
+    const {cat, amt, note, time} = pendingExpense;
     $('rCat').textContent = `${cat.emoji} ${cat.name}`;
     $('rTo').textContent = `from ${state.sender}`;
-    $('rNoteLabel').textContent = note ? 'Note' : 'Note';
     $('rNoteVal').textContent = note || '—';
     $('rTime').textContent = time.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
     $('rAmt').textContent = '$' + amt.toFixed(2);
-
     $('overlay').classList.add('show');
   }
 
@@ -486,7 +592,7 @@
     pendingExpense = null;
   }
 
-  function doSend(){
+  async function doSend(){
     if(!pendingExpense) return;
     const {cat, amt, note, time} = pendingExpense;
 
@@ -501,9 +607,29 @@
 
     window.location.href = smsUrl;
 
-    state.history.unshift({cat, amt, note, time});
+    // save to the shared backend so every phone sees it
+    try{
+      const res = await fetch(`${API_URL}/expenses`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          cat: cat.id, catEmoji: cat.emoji, amt, note, sender: state.sender
+        })
+      });
+      const saved = await res.json();
+      state.allExpenses.unshift(saved);
+    }catch(err){
+      // fall back to a local-only entry if the network hiccups
+      state.allExpenses.unshift({
+        id: 'local-' + Date.now(), cat: cat.id, catEmoji: cat.emoji,
+        amt, note, sender: state.sender, time: time.toISOString()
+      });
+    }
+
     updateHistory();
     updateTabTotal();
+    renderBreakdown();
+    renderMerchantChips();
 
     closeOverlay();
     $('amount').value = '';
@@ -514,32 +640,88 @@
     showToast('Opening Messages...');
   }
 
-  function updateTabTotal(){
-    const total = state.history.reduce((s,h) => s + h.amt, 0);
-    $('tabTotal').textContent = '$' + total.toFixed(2);
-    $('tabCount').textContent = `${state.history.length} item${state.history.length===1?'':'s'} sent`;
+  function setView(mode){
+    state.viewMode = mode;
+    $('btnToday').classList.toggle('active', mode === 'today');
+    $('btnWeek').classList.toggle('active', mode === 'week');
+    $('historyTitle').textContent = mode === 'today' ? 'Sent today' : 'Sent this week';
+    updateTabTotal();
+    updateHistory();
+    renderBreakdown();
   }
+
+  function updateTabTotal(){
+    const items = filteredExpenses();
+    const total = items.reduce((s,h) => s + h.amt, 0);
+    $('tabTotal').textContent = '$' + total.toFixed(2);
+    $('tabCount').textContent = `${items.length} item${items.length===1?'':'s'} sent`;
+  }
+
+  function renderBreakdown(){
+    const wrap = $('breakdown');
+    const items = filteredExpenses();
+    document.querySelector('.tabstrip .label').textContent =
+      state.viewMode === 'today' ? "Today's tab" : "This week's tab";
+    if(items.length === 0){
+      wrap.innerHTML = `<div class="empty">Nothing sent ${state.viewMode === 'today' ? 'today' : 'this week'} yet</div>`;
+      return;
+    }
+    const bySender = {};
+    items.forEach(h => { bySender[h.sender] = (bySender[h.sender] || 0) + h.amt; });
+    wrap.innerHTML = Object.entries(bySender)
+      .sort((a,b) => b[1]-a[1])
+      .map(([name, total]) => `<div class="chip">${name} <b>$${total.toFixed(2)}</b></div>`)
+      .join('');
+  }
+
+  function renderMerchantChips(){
+    const wrap = $('chipsRow');
+    const counts = {};
+    state.allExpenses.forEach(h => {
+      const note = (h.note || '').trim();
+      if(note.length >= 2) counts[note] = (counts[note] || 0) + 1;
+    });
+    const top = Object.entries(counts)
+      .filter(([,c]) => c >= 2)
+      .sort((a,b) => b[1]-a[1])
+      .slice(0, 6)
+      .map(([name]) => name);
+    if(top.length === 0){ wrap.innerHTML = ''; return; }
+    wrap.innerHTML = top.map(name =>
+      `<button type="button" class="chip-btn" onclick="fillNote('${name.replace(/'/g,"\\'")}')">${name}</button>`
+    ).join('');
+  }
+  function fillNote(name){ $('note').value = name; }
 
   function updateHistory(){
     const wrap = $('historyWrap');
     const list = $('historyList');
-    if(state.history.length === 0){ wrap.style.display='none'; return; }
+    const items = filteredExpenses();
+    if(items.length === 0){ wrap.style.display='flex'; list.innerHTML = `<div style="text-align:center; padding:16px; color:#6d6390; font-size:13px;">Nothing sent ${state.viewMode === 'today' ? 'today' : 'this week'} yet</div>`; return; }
     wrap.style.display = 'flex';
     list.innerHTML = '';
-    state.history.forEach(h => {
+    items.forEach(h => {
+      const t = new Date(h.time);
       const el = document.createElement('div');
       el.className = 'h-item';
       el.innerHTML = `
-        <span class="em">${h.cat.emoji}</span>
+        <span class="em">${h.catEmoji || '💸'}</span>
         <div class="mid">
-          <div class="top">${h.cat.name}</div>
-          <div class="bot">${h.note || h.time.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+          <div class="top">${h.sender} · ${catLabel(h.cat)}</div>
+          <div class="bot">${h.note || t.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
         </div>
         <span class="amt">$${h.amt.toFixed(2)}</span>
       `;
       list.appendChild(el);
     });
   }
+  function catLabel(id){
+    const c = catInfo(id);
+    return c ? c.name : 'Other';
+  }
+
+  // initial load
+  loadExpenses();
 </script>
 </body>
 </html>
